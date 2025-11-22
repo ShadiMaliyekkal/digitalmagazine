@@ -1,26 +1,89 @@
 @import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
+/* -- Theme vars (dark/light) -- */
 :root {
   --background: #ffffff;
   --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --muted: #6b7280;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --muted: #9ca3af;
   }
 }
 
-body {
+/* -- Base styles -- */
+html, body, #__next {
+  height: 100%;
+  margin: 0;
+  padding: 0;
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
+
+/* responsive container helpers */
+.container-centered {
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+/* default max widths - mobile-first */
+.max-w-site { max-width: 100%; }
+@media (min-width: 640px)  { .max-w-site { max-width: 40rem; } } /* sm */
+@media (min-width: 768px)  { .max-w-site { max-width: 48rem; } } /* md */
+@media (min-width: 1024px) { .max-w-site { max-width: 64rem; } } /* lg */
+
+/* images */
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* nice card / reduced contrast for dark theme */
+.card {
+  background: rgba(0,0,0,0.25);
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+/* small utilities */
+.nav-touch { padding: 10px; border-radius: 8px; }
+.text-muted { color: var(--muted); }
+
+/* readability for long content on mobile */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ensure form inputs are comfortable tap targets on mobile */
+input, textarea, button {
+  -webkit-tap-highlight-color: rgba(0,0,0,0);
+  touch-action: manipulation;
+}
+
+/* small focus style */
+:focus { outline: 3px solid rgba(99,102,241,0.12); outline-offset: 2px; }
+
+/* optional: utility to hide on small screens, show on md+ */
+.hide-sm { display: none; }
+@media (min-width: 768px) { .hide-sm { display: inline-flex; } }
+
+/* optional: show on small screens only */
+.show-sm { display: inline-flex; }
+@media (min-width: 768px) { .show-sm { display: none; } }
