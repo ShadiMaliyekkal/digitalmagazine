@@ -1,27 +1,25 @@
 // lib/api.ts
-// Build-time API base (Next.js injects NEXT_PUBLIC_API_URL here)
-const API_BASE =
-  typeof window !== "undefined" && process.env.NEXT_PUBLIC_API_URL
-    ? `${process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, "")}/api`
-    : "https://shaadhi.pythonanywhere.com/api"; // fallback if env var missing
+
+// Resolve API base at build time OR runtime in browser
+const PUBLIC_API = process.env.NEXT_PUBLIC_API_URL
+  ? process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, "")
+  : "https://shaadhi.pythonanywhere.com";
 
 export async function request(path: string, options: RequestInit = {}) {
-  // Read token only in browser
+  const API_BASE = `${PUBLIC_API}/api`;
+
   const token =
-    typeof window !== "undefined" ? (localStorage.getItem("token") || null) : null;
+    typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-  // copy headers from options (RequestInit.headers can be Headers | [string,string][] | Record)
-  const headers = {
-    // spread existing plain-object headers (if any)
-    ...(options.headers && typeof options.headers === "object" && !(options.headers instanceof Headers)
-      ? (options.headers as Record<string, string>)
-      : {}),
-  } as Record<string, string>;
+  const headers: Record<string, string> = {};
 
-  // If body is FormData we must NOT set Content-Type (browser sets it with boundary)
-  // Using a type-safe check — cast options.body to any for the instanceof check
-  const bodyAny = (options as any).body;
-  if (!(bodyAny instanceof FormData)) {
+  if (options.headers) {
+    Object.assign(headers, options.headers as Record<string, string>);
+  }
+
+  // only auto-set JSON when not uploading via FormData
+  const body = (options as any).body;
+  if (!(body instanceof FormData)) {
     headers["Content-Type"] = headers["Content-Type"] ?? "application/json";
   }
 
@@ -29,12 +27,9 @@ export async function request(path: string, options: RequestInit = {}) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const url = `${API_BASE}${path}`;
-
-  const res = await fetch(url, {
+  const res = await fetch(`${API_BASE}${path}`, {
     ...options,
     headers,
-    // include credentials only if you rely on cookies; remove if not needed
     credentials: "include",
   });
 
@@ -43,12 +38,12 @@ export async function request(path: string, options: RequestInit = {}) {
     throw new Error(`${res.status} - ${text}`);
   }
 
-  // Some endpoints may not return JSON (or return empty string)
-  const text = await res.text();
-  if (!text) return null;
+  const txt = await res.text();
+  if (!txt) return null;
+
   try {
-    return JSON.parse(text);
+    return JSON.parse(txt);
   } catch {
-    return text;
+    return txt;
   }
 }
